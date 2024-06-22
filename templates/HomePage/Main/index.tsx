@@ -235,6 +235,9 @@ const Main = ({}: MainProps) => {
                 onSend={handleSendMessage}
                 onFileUpload={handleFileUpload} // Add this line
             />
+
+            
+
         </>
     );
 };
