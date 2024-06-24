@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import Layout from '../components/Layout'; // Assuming you have a Layout component
+import imageCompression from 'browser-image-compression';
 
 const XrayPage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [response, setResponse] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isXray, setIsXray] = useState<boolean | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -16,18 +18,56 @@ const XrayPage: React.FC = () => {
     }
   };
 
+  const convertToPng = async (file: File): Promise<File> => {
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+      fileType: 'image/png',
+    };
+    try {
+      const compressedFile = await imageCompression(file, options);
+      return compressedFile;
+    } catch (error) {
+      console.error('Error converting to PNG:', error);
+      return file;
+    }
+  };
+
+  const toBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        if (reader.result) {
+          resolve((reader.result as string).split(',')[1]);
+        }
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!file) return;
 
+    let processedFile = file;
+
+    // Check if the file is a JPEG and convert to PNG if needed
+    if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+      processedFile = await convertToPng(file);
+    }
+
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', processedFile);
 
     setLoading(true);
 
     try {
-      const res = await axios.post(
-        'http://medibot-ensemble-model-docker.icyflower-27afbae0.uaenorth.azurecontainerapps.io/predict',
+      const predictRes = await axios.post(
+        'https://medibot-ensemble-model-docker.icyflower-27afbae0.uaenorth.azurecontainerapps.io/predict',
         formData,
         {
           headers: {
@@ -35,7 +75,19 @@ const XrayPage: React.FC = () => {
           },
         }
       );
-      setResponse(res.data);
+
+      const classifyRes = await axios.post('https://final-image-classification.icysea-c7b6b719.uaenorth.azurecontainerapps.io/classify-image/', {
+        image_base64: await toBase64(processedFile),
+        image_extension: 'png',
+      });
+
+      if (classifyRes.data.xray) {
+        setResponse(predictRes.data);
+        setIsXray(true);
+      } else {
+        console.error('The uploaded image is not an X-ray.');
+        setIsXray(false);
+      }
     } catch (error) {
       console.error('Error uploading file:', error);
     } finally {
@@ -121,6 +173,7 @@ const XrayPage: React.FC = () => {
           </button>
         </form>
         {loading && <p className="mt-4">Processing...</p>}
+        {isXray==false && <p className="mt-4">Please Upload an Xray Image</p>}
         {renderResults()}
       </div>
     </Layout>
