@@ -37,7 +37,7 @@ const SocialsPost = ({ items }: SocialsPostProps) => (
                 <div className="ml-3 text-0">
                     <svg
                         className="fill-n-7 dark:fill-n-1"
-                        xmlns="http://www.w3.org/2000/svg"
+                        xmlns="https://www.w3.org/2000/svg"
                         width="80"
                         height="20"
                         viewBox="0 0 80 20"

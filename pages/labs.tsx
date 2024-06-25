@@ -249,6 +249,9 @@ const LabReportsPage: React.FC = () => {
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
+
+    setLoading(true);
+
     event.preventDefault();
     if (!file) return;
 
@@ -262,7 +265,6 @@ const LabReportsPage: React.FC = () => {
     const formData = new FormData();
     formData.append('file', processedFile);
 
-    setLoading(true);
 
     try {
       const classifyRes = await axios.post('https://final-image-classification.icysea-c7b6b719.uaenorth.azurecontainerapps.io/classify-image/', {

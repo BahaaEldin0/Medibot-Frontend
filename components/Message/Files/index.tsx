@@ -28,7 +28,7 @@ const Files = ({ image, document }: FilesProps) => (
             <div className="flex items-center base1 font-semibold">
                 <div className="w-[2.625rem] mr-4">
                     <svg
-                        xmlns="http://www.w3.org/2000/svg"
+                        xmlns="https://www.w3.org/2000/svg"
                         width="42"
                         height="48"
                         fill="none"
