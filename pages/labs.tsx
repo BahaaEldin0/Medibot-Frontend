@@ -282,7 +282,8 @@ const LabReportsPage: React.FC = () => {
             },
           }
         );
-        setResponse(analyzeRes.data);
+        console.log(analyzeRes.data.report);
+        setResponse(analyzeRes.data.report);
         setIsLabReport(true);
       } else {
         console.error('The uploaded image is not a lab report.');
